@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login — CivicConnect</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    }
+    .card {
+      background: #1E293B; border: 1px solid #334155;
+      border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 400px;
+    }
+    .logo { display:flex; align-items:center; gap:10px; margin-bottom:2rem; }
+    .logo-icon { width:44px; height:44px; border-radius:12px; background:linear-gradient(135deg,#1A56DB,#1040B0); display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:#fff; }
+    .logo-name { font-family:'DM Serif Display',serif; color:#F1F5F9; font-size:1.3rem; }
+    .card-title { font-size:1.3rem; font-weight:600; color:#F1F5F9; margin-bottom:0.25rem; }
+    .card-sub   { font-size:0.85rem; color:#64748B; margin-bottom:1.8rem; }
+    .form-group { margin-bottom:1rem; }
+    label { font-size:0.82rem; font-weight:500; color:#94A3B8; display:block; margin-bottom:6px; }
+    .inp-wrap { position:relative; }
+    .inp-wrap i { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#475569; font-size:0.85rem; }
+    input {
+      width:100%; padding:11px 14px 11px 38px;
+      background:#0F172A; border:1.5px solid #334155; border-radius:10px;
+      color:#F1F5F9; font-family:'DM Sans',sans-serif; font-size:0.9rem; outline:none;
+      transition:border 0.2s;
+    }
+    input:focus { border-color:#1A56DB; }
+    .btn {
+      width:100%; padding:12px;
+      background:linear-gradient(135deg,#1A56DB,#1040B0);
+      color:#fff; border:none; border-radius:10px;
+      font-family:'DM Sans',sans-serif; font-weight:600; font-size:0.95rem;
+      cursor:pointer; transition:all 0.2s; margin-top:0.5rem;
+    }
+    .btn:hover { transform:translateY(-1px); box-shadow:0 4px 14px rgba(26,86,219,0.4); }
+    .err { background:#450A0A; border:1px solid #7F1D1D; border-radius:10px; padding:10px 14px; color:#FCA5A5; font-size:0.85rem; margin-bottom:1rem; }
+    .back { display:block; text-align:center; margin-top:1.2rem; font-size:0.83rem; color:#475569; text-decoration:none; }
+    .back:hover { color:#94A3B8; }
+    .hint { background:#1E3A5F; border:1px solid #1D4ED8; border-radius:10px; padding:10px 14px; font-size:0.8rem; color:#93C5FD; margin-top:1.2rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="logo-name">CivicConnect</div>
+    </div>
+    <div class="card-title">Admin Portal</div>
+    <div class="card-sub">Sign in with your admin credentials</div>
+    {% if error %}<div class="err"><i class="fa-solid fa-triangle-exclamation me-1"></i>{{ error }}</div>{% endif %}
+    <form method="POST">
+      <div class="form-group">
+        <label>Username</label>
+        <div class="inp-wrap">
+          <i class="fa-solid fa-user-shield"></i>
+          <input type="text" name="username" placeholder="admin" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="inp-wrap">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" name="password" placeholder="••••••••" required/>
+        </div>
+      </div>
+      <button type="submit" class="btn"><i class="fa-solid fa-right-to-bracket me-2"></i>Sign In to Admin</button>
+    </form>
+    <div class="hint"><i class="fa-solid fa-circle-info me-1"></i>Default: username <strong>admin</strong> / password <strong>admin123</strong></div>
+    <a href="/login" class="back"><i class="fa-solid fa-arrow-left me-1"></i>Back to citizen login</a>
+  </div>
+</body>
+</html>

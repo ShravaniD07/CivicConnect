@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — CivicConnect</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      background: #F0F4FF;
+    }
+    .left-panel {
+      width: 45%;
+      background: linear-gradient(145deg, #1A56DB 0%, #0F2FAA 60%, #1040B0 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      width: 350px; height: 350px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      top: -80px; left: -80px;
+    }
+    .left-panel::after {
+      content: '';
+      position: absolute;
+      width: 250px; height: 250px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      bottom: -60px; right: -60px;
+    }
+    .brand-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 3rem; }
+    .brand-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; color: #fff;
+    }
+    .brand-name { font-family: 'DM Serif Display', serif; color: #fff; font-size: 1.6rem; }
+    .left-heading { font-family: 'DM Serif Display', serif; color: #fff; font-size: 2rem; line-height: 1.3; margin-bottom: 1rem; }
+    .left-sub { color: rgba(255,255,255,0.7); font-size: 0.95rem; line-height: 1.7; margin-bottom: 2.5rem; }
+    .feature { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+    .feature-dot { width: 8px; height: 8px; border-radius: 50%; background: #93C5FD; flex-shrink: 0; }
+    .feature-text { color: rgba(255,255,255,0.8); font-size: 0.88rem; }
+
+    .right-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .auth-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+    }
+    .auth-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: #1E293B; margin-bottom: 0.3rem; }
+    .auth-sub { font-size: 0.88rem; color: #64748B; margin-bottom: 1.8rem; }
+    .form-group { margin-bottom: 1.1rem; }
+    label { font-size: 0.83rem; font-weight: 500; color: #475569; display: block; margin-bottom: 6px; }
+    .input-wrap { position: relative; }
+    .input-wrap i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 0.9rem; }
+    input {
+      width: 100%;
+      padding: 11px 14px 11px 38px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      color: #1E293B;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus { border-color: #1A56DB; box-shadow: 0 0 0 3px rgba(26,86,219,0.1); }
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #1A56DB, #1040B0);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+    }
+    .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,86,219,0.35); }
+    .divider { text-align: center; margin: 1.2rem 0; position: relative; }
+    .divider::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #E2E8F0; }
+    .divider span { background: #fff; position: relative; padding: 0 12px; font-size: 0.8rem; color: #94A3B8; }
+    .link-text { text-align: center; font-size: 0.88rem; color: #64748B; }
+    .link-text a { color: #1A56DB; font-weight: 500; text-decoration: none; }
+    .admin-link { text-align: center; margin-top: 1rem; }
+    .admin-link a { font-size: 0.82rem; color: #94A3B8; text-decoration: none; }
+    .admin-link a:hover { color: #1A56DB; }
+    .alert-error {
+      background: #FEF2F2; border: 1px solid #FECACA;
+      border-radius: 10px; padding: 10px 14px;
+      color: #DC2626; font-size: 0.85rem; margin-bottom: 1rem;
+    }
+    @media (max-width: 768px) {
+      .left-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="left-panel">
+    <div class="brand-wrap">
+      <div class="brand-icon"><i class="fa-solid fa-city"></i></div>
+      <div class="brand-name">CivicConnect</div>
+    </div>
+    <div class="left-heading">Report. Track.<br/>Get Resolved.</div>
+    <div class="left-sub">Your civic issues matter. Our platform ensures every complaint reaches the right department and gets resolved on time.</div>
+    <div class="feature"><div class="feature-dot"></div><div class="feature-text">Report issues in seconds</div></div>
+    <div class="feature"><div class="feature-dot"></div><div class="feature-text">Real-time status tracking</div></div>
+    <div class="feature"><div class="feature-dot"></div><div class="feature-text">Direct to the right department</div></div>
+    <div class="feature"><div class="feature-dot"></div><div class="feature-text">Rate resolution quality</div></div>
+  </div>
+
+  <div class="right-panel">
+    <div class="auth-card">
+      <div class="auth-title">Welcome back</div>
+      <div class="auth-sub">Sign in to your citizen account</div>
+      {% if error %}<div class="alert-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>{% endif %}
+      <form method="POST">
+        <div class="form-group">
+          <label>Email address</label>
+          <div class="input-wrap">
+            <i class="fa-regular fa-envelope"></i>
+            <input type="email" name="email" placeholder="you@example.com" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrap">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" name="password" placeholder="••••••••" required/>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">Sign In</button>
+      </form>
+      <div class="divider"><span>or</span></div>
+      <div class="link-text">New citizen? <a href="/register">Create an account</a></div>
+      <div class="admin-link"><a href="/admin/login"><i class="fa-solid fa-shield-halved"></i> Admin login</a></div>
+    </div>
+  </div>
+</body>
+</html>

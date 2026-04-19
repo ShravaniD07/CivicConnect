@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — CivicConnect{% endblock %}
+
+{% block content %}
+<div class="section-title">Admin Dashboard</div>
+<div class="section-sub">Manage and track all citizen complaints.</div>
+
+<!-- STATS -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#DBEAFE; color:#1D4ED8;">
+        <i class="fa-solid fa-file-circle-exclamation"></i>
+      </div>
+      <div>
+        <div class="stat-label">Total Complaints</div>
+        <div class="stat-value">{{ total }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#FEF3C7; color:#B45309;">
+        <i class="fa-solid fa-hourglass-half"></i>
+      </div>
+      <div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">{{ pending }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#DBEAFE; color:#2563EB;">
+        <i class="fa-solid fa-spinner"></i>
+      </div>
+      <div>
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value">{{ progress }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="stat-card">
+      <div class="stat-icon" style="background:#D1FAE5; color:#059669;">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <div class="stat-label">Resolved</div>
+        <div class="stat-value">{{ resolved }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="card-custom mb-4">
+  <h6 style="font-weight:600; margin-bottom:1rem; color:#1E293B;">
+    <i class="fa-solid fa-filter me-2" style="color:#1A56DB;"></i>Filter Complaints
+  </h6>
+
+  <form method="GET">
+    <div class="row g-3">
+      <div class="col-md-2">
+        <label class="form-label-custom">Status</label>
+        <select name="status" class="form-input">
+          <option value="">All Status</option>
+          <option value="Pending" {{ 'selected' if selected_status == 'Pending' }}>Pending</option>
+          <option value="Assigned" {{ 'selected' if selected_status == 'Assigned' }}>Assigned</option>
+          <option value="In Progress" {{ 'selected' if selected_status == 'In Progress' }}>In Progress</option>
+          <option value="Under Review" {{ 'selected' if selected_status == 'Under Review' }}>Under Review</option>
+          <option value="Resolved" {{ 'selected' if selected_status == 'Resolved' }}>Resolved</option>
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label-custom">Category</label>
+        <select name="category" class="form-input">
+          <option value="">All Categories</option>
+          {% for cat in categories %}
+          <option value="{{ cat.Category_Name }}" {{ 'selected' if selected_category == cat.Category_Name }}>
+            {{ cat.Category_Name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label-custom">Department</label>
+        <select name="department" class="form-input">
+          <option value="">All Departments</option>
+          {% for dept in departments %}
+          <option value="{{ dept.Department_Name }}" {{ 'selected' if selected_department == dept.Department_Name }}>
+            {{ dept.Department_Name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label-custom">From Date</label>
+        <input type="date" name="date_from" class="form-input" value="{{ selected_date_from }}">
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label-custom">To Date</label>
+        <input type="date" name="date_to" class="form-input" value="{{ selected_date_to }}">
+      </div>
+
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn-primary-custom" style="width:100%;">
+          <i class="fa-solid fa-magnifying-glass me-1"></i> Apply
+        </button>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <a href="/admin/dashboard" class="btn-outline-custom">
+        <i class="fa-solid fa-rotate-left me-1"></i> Clear Filters
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- COMPLAINT TABLE -->
+<div class="card-custom">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 style="font-weight:600; margin:0; color:#1E293B;">
+      <i class="fa-solid fa-list me-2" style="color:#1A56DB;"></i>All Complaints
+    </h6>
+  </div>
+
+  {% if complaints %}
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Citizen</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Department</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in complaints %}
+        <tr>
+          <td>#{{ c.Complaint_ID }}</td>
+          <td style="font-weight:500;">{{ c.Title }}</td>
+          <td>{{ c.Citizen_Name or '—' }}</td>
+          <td>{{ c.Category_Name or '—' }}</td>
+          <td>
+            {% if c.Priority == 'High' %}
+              <span class="badge-priority-High">High</span>
+            {% elif c.Priority == 'Medium' %}
+              <span class="badge-priority-Medium">Medium</span>
+            {% else %}
+              <span class="badge-priority-Low">Low</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if c.Status == 'Pending' %}
+              <span class="badge-status badge-pending">Pending</span>
+            {% elif c.Status == 'In Progress' %}
+              <span class="badge-status badge-progress">In Progress</span>
+            {% elif c.Status == 'Resolved' %}
+              <span class="badge-status badge-resolved">Resolved</span>
+            {% elif c.Status == 'Assigned' %}
+              <span class="badge-status badge-assigned">Assigned</span>
+            {% else %}
+              <span class="badge-status" style="background:#F1F5F9; color:#475569;">{{ c.Status }}</span>
+            {% endif %}
+          </td>
+          <td>{{ c.Date_Submitted }}</td>
+          <td>{{ c.Department_Name or 'Not Assigned' }}</td>
+          <td>
+            <a href="/admin/update/{{ c.Complaint_ID }}" class="btn-outline-custom" style="padding:6px 12px; font-size:0.8rem;">
+              Manage
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center; padding:2rem 1rem; color:#64748B;">
+    <i class="fa-solid fa-folder-open" style="font-size:2rem; margin-bottom:0.8rem; color:#CBD5E1;"></i>
+    <div style="font-size:0.95rem; font-weight:500;">No complaints found</div>
+    <div style="font-size:0.85rem;">Try changing the filters.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

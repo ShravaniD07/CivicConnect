@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block title %}Manage Complaint #{{ complaint.Complaint_ID }} — CivicConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+  .status-opt {
+    border: 2px solid #E2E8F0;
+  }
+
+  .status-opt.active-status {
+    border: 2px solid #1A56DB;
+  }
+
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #E2E8F0;
+  }
+  .tl-item { position: relative; margin-bottom: 1.2rem; }
+  .tl-dot {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+  }
+  .tl-dot.pending  { background: #D97706; box-shadow: 0 0 0 2px #FDE68A; }
+  .tl-dot.progress { background: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; }
+  .tl-dot.resolved { background: #16A34A; box-shadow: 0 0 0 2px #BBF7D0; }
+  .tl-dot.assigned { background: #8B5CF6; box-shadow: 0 0 0 2px #DDD6FE; }
+  .tl-dot.default  { background: #94A3B8; }
+  .tl-date { font-size: 0.75rem; color: #94A3B8; }
+  .tl-msg  { font-size: 0.86rem; color: #1E293B; margin-top: 1px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+  <a href="/admin/dashboard" style="color:#64748B; text-decoration:none; font-size:0.88rem;">
+    <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+  </a>
+</div>
+
+<div class="section-title">Manage Complaint #{{ complaint.Complaint_ID }}</div>
+<div class="section-sub">{{ complaint.Title }}</div>
+
+<div class="row g-3">
+  <!-- LEFT: Complaint info + Timeline -->
+  <div class="col-lg-5">
+    <div class="card-custom mb-3">
+      <h6 style="font-weight:600; margin-bottom:1rem;">Complaint Info</h6>
+      <table style="width:100%; font-size:0.86rem; border-collapse:separate; border-spacing:0 6px;">
+        <tr><td style="color:#94A3B8; width:40%;">Citizen</td><td style="font-weight:500;">{{ complaint.Citizen_Name }}</td></tr>
+        <tr><td style="color:#94A3B8;">Category</td><td>{{ complaint.Category_Name or '—' }}</td></tr>
+        <tr><td style="color:#94A3B8;">Issue Type</td><td>{{ complaint.Option_Name or '—' }}</td></tr>
+        <tr><td style="color:#94A3B8;">Location</td><td>{{ complaint.Location or '—' }}</td></tr>
+        <tr><td style="color:#94A3B8;">Date</td><td>{{ complaint.Date_Submitted }}</td></tr>
+        <tr>
+          <td style="color:#94A3B8;">Status</td>
+          <td>
+            {% if complaint.Status == 'Pending' %}
+              <span class="badge-status badge-pending">Pending</span>
+            {% elif complaint.Status == 'In Progress' %}
+              <span class="badge-status badge-progress">In Progress</span>
+            {% elif complaint.Status == 'Resolved' %}
+              <span class="badge-status badge-resolved">Resolved</span>
+            {% elif complaint.Status == 'Assigned' %}
+              <span class="badge-status badge-assigned">Assigned</span>
+            {% else %}
+              <span class="badge-status" style="background:#F1F5F9;color:#475569;">{{ complaint.Status }}</span>
+            {% endif %}
+          </td>
+        </tr>
+      </table>
+
+      {% if complaint.Description %}
+      <div style="margin-top:1rem; font-size:0.85rem; color:#475569; background:#F8FAFC; border-radius:10px; padding:10px 14px; line-height:1.6;">
+        {{ complaint.Description }}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Timeline -->
+    <div class="card-custom">
+      <h6 style="font-weight:600; margin-bottom:1.2rem;">
+        <i class="fa-solid fa-clock-rotate-left me-2" style="color:#1A56DB;"></i>Update History
+      </h6>
+
+      {% if updates %}
+      <div class="timeline">
+        {% for u in updates %}
+        {% set s = u.Status|lower %}
+        <div class="tl-item">
+          <div class="tl-dot {{ 'resolved' if 'resolved' in s else 'progress' if 'progress' in s else 'assigned' if 'assigned' in s else 'pending' if 'pending' in s else 'default' }}"></div>
+          <div class="tl-date">{{ u.Update_Date }} &bull; {{ u.Status }}</div>
+          <div class="tl-msg">{{ u.Update_Message }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="color:#94A3B8; font-size:0.85rem;">No updates logged yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RIGHT: Update Form -->
+  <div class="col-lg-7">
+    <div class="card-custom">
+      <h6 style="font-weight:600; margin-bottom:1.5rem;">
+        <i class="fa-solid fa-pen-to-square me-2" style="color:#1A56DB;"></i>Update Complaint
+      </h6>
+
+      <form method="POST">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label-custom">Assign Department</label>
+            <select name="dept_id" class="form-input" required>
+              <option value="">-- Select Department --</option>
+              {% for d in departments %}
+              <option value="{{ d.Department_ID }}" {{ 'selected' if complaint.Department_ID == d.Department_ID }}>
+                {{ d.Department_Name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label-custom">Assign Employee</label>
+            <select name="emp_id" class="form-input" required>
+              <option value="">-- Select Employee --</option>
+              {% for e in employees %}
+              <option value="{{ e.Employee_ID }}" {{ 'selected' if complaint.Employee_ID == e.Employee_ID }}>
+                {{ e.Name }} ({{ e.Department_Name }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label-custom">Update Status</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              {% for status in ['Assigned', 'In Progress', 'Under Review', 'Resolved'] %}
+              <label style="cursor:pointer;">
+                <input
+                  type="radio"
+                  name="status"
+                  value="{{ status }}"
+                  style="display:none;"
+                  id="s_{{ loop.index }}"
+                  {{ 'checked' if complaint.Status == status }}
+                  onchange="document.querySelectorAll('.status-opt').forEach(e => e.style.borderColor='#E2E8F0'); document.getElementById('so_{{ loop.index }}').style.borderColor='#1A56DB';"
+                >
+
+                <div
+                  class="status-opt {{ 'active-status' if complaint.Status == status }}"
+                  id="so_{{ loop.index }}"
+                  onclick="document.getElementById('s_{{ loop.index }}').click()"
+                  style="border-radius:10px; padding:10px 14px; font-size:0.86rem; font-weight:500; text-align:center; transition:border 0.2s;"
+                >
+                  {% if status == 'Assigned' %}
+                    <i class="fa-solid fa-user-check" style="color:#8B5CF6; margin-right:6px;"></i>
+                  {% elif status == 'In Progress' %}
+                    <i class="fa-solid fa-spinner" style="color:#3B82F6; margin-right:6px;"></i>
+                  {% elif status == 'Under Review' %}
+                    <i class="fa-solid fa-magnifying-glass" style="color:#D97706; margin-right:6px;"></i>
+                  {% elif status == 'Resolved' %}
+                    <i class="fa-solid fa-circle-check" style="color:#16A34A; margin-right:6px;"></i>
+                  {% endif %}
+                  {{ status }}
+                </div>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-12">
+            <label class="form-label-custom">Update Message</label>
+            <textarea
+              name="message"
+              class="form-input"
+              rows="4"
+              placeholder="Describe what action was taken, e.g. 'Site inspection completed. Repair crew dispatched.'"
+              required
+              style="resize:vertical;"
+            ></textarea>
+          </div>
+
+          <div class="col-12">
+            <button type="submit" class="btn-primary-custom" style="width:100%; padding:13px;">
+              <i class="fa-solid fa-floppy-disk me-2"></i>Save Update
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
