@@ -1,39 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Complaint #{{ complaint.Complaint_ID }} — CivicConnect{% endblock %}
 
-{% block extra_css %}
-<style>
-  .timeline { position: relative; padding-left: 32px; }
-  .timeline::before { content:''; position:absolute; left:10px; top:0; bottom:0; width:2px; background:#E2E8F0; border-radius:2px; }
-  .tl-item { position: relative; margin-bottom: 1.5rem; }
-  .tl-dot {
-    position: absolute; left: -26px; top: 4px;
-    width: 14px; height: 14px; border-radius: 50%;
-    border: 2px solid #fff; box-shadow: 0 0 0 2px #E2E8F0;
-  }
-  .tl-dot.pending  { background:#D97706; box-shadow:0 0 0 2px #FDE68A; }
-  .tl-dot.progress { background:#3B82F6; box-shadow:0 0 0 2px #BFDBFE; }
-  .tl-dot.resolved { background:#16A34A; box-shadow:0 0 0 2px #BBF7D0; }
-  .tl-dot.assigned { background:#8B5CF6; box-shadow:0 0 0 2px #DDD6FE; }
-  .tl-dot.default  { background:#94A3B8; box-shadow:0 0 0 2px #E2E8F0; }
-  .tl-date  { font-size:0.75rem; color:#94A3B8; margin-bottom:3px; }
-  .tl-msg   { font-size:0.88rem; color:#1E293B; }
-  .tl-status { font-size:0.75rem; font-weight:500; }
-
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .info-row  { display:flex; flex-direction:column; gap:4px; }
-  .info-lbl  { font-size:0.75rem; color:#94A3B8; text-transform:uppercase; letter-spacing:0.05em; }
-  .info-val  { font-size:0.9rem; color:#1E293B; font-weight:500; }
-
-  .star-rating { display:flex; gap:6px; flex-direction:row-reverse; justify-content:flex-end; }
-  .star-rating input { display:none; }
-  .star-rating label { font-size:1.6rem; color:#D1D5DB; cursor:pointer; transition:color 0.1s; }
-  .star-rating input:checked ~ label,
-  .star-rating label:hover,
-  .star-rating label:hover ~ label { color:#F59E0B; }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="mb-3">
   <a href="/dashboard" style="color:#64748B; text-decoration:none; font-size:0.88rem;">
@@ -41,115 +8,131 @@
   </a>
 </div>
 
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-  <div>
-    <div class="section-title">{{ complaint.Title }}</div>
-    <div class="section-sub">Complaint #{{ complaint.Complaint_ID }} &bull; Submitted {{ complaint.Date_Submitted }}</div>
-  </div>
-  {% if complaint.Status == 'Pending' %}
-    <span class="badge-status badge-pending" style="align-self:flex-start; font-size:0.85rem; padding:8px 16px;">Pending</span>
-  {% elif complaint.Status == 'In Progress' %}
-    <span class="badge-status badge-progress" style="align-self:flex-start; font-size:0.85rem; padding:8px 16px;">In Progress</span>
-  {% elif complaint.Status == 'Resolved' %}
-    <span class="badge-status badge-resolved" style="align-self:flex-start; font-size:0.85rem; padding:8px 16px;">Resolved</span>
-  {% elif complaint.Status == 'Assigned' %}
-    <span class="badge-status badge-assigned" style="align-self:flex-start; font-size:0.85rem; padding:8px 16px;">Assigned</span>
-  {% else %}
-    <span class="badge-status" style="background:#F1F5F9;color:#475569;align-self:flex-start;font-size:0.85rem;padding:8px 16px;">{{ complaint.Status }}</span>
-  {% endif %}
-</div>
+<div class="section-title">Complaint #{{ complaint.Complaint_ID }}</div>
+<div class="section-sub">{{ complaint.Title }}</div>
 
 <div class="row g-3">
-  <!-- LEFT: Details + Timeline -->
-  <div class="col-lg-8">
-    <!-- Complaint Info -->
+  <div class="col-lg-5">
     <div class="card-custom mb-3">
-      <h6 style="font-weight:600; margin-bottom:1.2rem;">Complaint Details</h6>
-      <div class="info-grid mb-3">
-        <div class="info-row">
-          <div class="info-lbl">Category</div>
-          <div class="info-val">{{ complaint.Category_Name or '—' }}</div>
-        </div>
-        <div class="info-row">
-          <div class="info-lbl">Issue Type</div>
-          <div class="info-val">{{ complaint.Option_Name or '—' }}</div>
-        </div>
-        <div class="info-row">
-          <div class="info-lbl">Priority</div>
-          <div class="info-val"><span class="badge-priority-{{ complaint.Priority }}">{{ complaint.Priority }}</span></div>
-        </div>
-        <div class="info-row">
-          <div class="info-lbl">Location</div>
-          <div class="info-val">{{ complaint.Location or '—' }}</div>
-        </div>
-        <div class="info-row">
-          <div class="info-lbl">Department</div>
-          <div class="info-val">{{ complaint.Department_Name or 'Not yet assigned' }}</div>
-        </div>
-        <div class="info-row">
-          <div class="info-lbl">Assigned To</div>
-          <div class="info-val">{{ complaint.Employee_Name or 'Not yet assigned' }}</div>
-        </div>
-      </div>
-      <div class="info-lbl mb-1">Description</div>
-      <div style="font-size:0.9rem; color:#475569; line-height:1.7; background:#F8FAFC; border-radius:10px; padding:12px 16px;">{{ complaint.Description }}</div>
-    </div>
+      <h6 style="font-weight:600; margin-bottom:1rem;">Complaint Info</h6>
 
-    <!-- Update Timeline -->
-    <div class="card-custom">
-      <h6 style="font-weight:600; margin-bottom:1.5rem;"><i class="fa-solid fa-clock-rotate-left me-2" style="color:#1A56DB;"></i>Progress Timeline</h6>
-      {% if updates %}
-      <div class="timeline">
-        {% for u in updates %}
-        <div class="tl-item">
-          {% set s = u.Status|lower %}
-          <div class="tl-dot {{ 'resolved' if 'resolved' in s else 'progress' if 'progress' in s else 'assigned' if 'assigned' in s else 'pending' if 'pending' in s else 'default' }}"></div>
-          <div class="tl-date"><i class="fa-regular fa-calendar me-1"></i>{{ u.Update_Date }}</div>
-          <div class="tl-msg">{{ u.Update_Message }}</div>
-          <div class="tl-status mt-1">
-            <span class="badge-status {{ 'badge-resolved' if 'resolved' in s else 'badge-progress' if 'progress' in s else 'badge-assigned' if 'assigned' in s else 'badge-pending' }}" style="font-size:0.72rem; padding:3px 10px;">{{ u.Status }}</span>
-          </div>
-        </div>
-        {% endfor %}
+      <table style="width:100%; font-size:0.86rem; border-collapse:separate; border-spacing:0 6px;">
+        <tr><td style="color:#94A3B8; width:40%;">Category</td><td>{{ complaint.Category_Name or '—' }}</td></tr>
+        <tr><td style="color:#94A3B8;">Issue Type</td><td>{{ complaint.Option_Name or '—' }}</td></tr>
+        <tr><td style="color:#94A3B8;">Priority</td><td>{{ complaint.Priority or '—' }}</td></tr>
+        <tr><td style="color:#94A3B8;">Location</td><td>{{ complaint.Location or '—' }}</td></tr>
+        <tr><td style="color:#94A3B8;">Date</td><td>{{ complaint.Date_Submitted }}</td></tr>
+        <tr>
+          <td style="color:#94A3B8;">Status</td>
+          <td>
+            {% if complaint.Status == 'Pending' %}
+              <span class="badge-status badge-pending">Pending</span>
+            {% elif complaint.Status == 'In Progress' %}
+              <span class="badge-status badge-progress">In Progress</span>
+            {% elif complaint.Status == 'Resolved' %}
+              <span class="badge-status badge-resolved">Resolved</span>
+            {% elif complaint.Status == 'Assigned' %}
+              <span class="badge-status badge-assigned">Assigned</span>
+            {% else %}
+              <span class="badge-status" style="background:#F1F5F9;color:#475569;">{{ complaint.Status }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        <tr><td style="color:#94A3B8;">Department</td><td>{{ complaint.Department_Name or 'Not Assigned' }}</td></tr>
+        <tr><td style="color:#94A3B8;">Employee</td><td>{{ complaint.Employee_Name or 'Not Assigned' }}</td></tr>
+      </table>
+
+      {% if complaint.Description %}
+      <div style="margin-top:1rem; font-size:0.85rem; color:#475569; background:#F8FAFC; border-radius:10px; padding:10px 14px; line-height:1.6;">
+        {{ complaint.Description }}
       </div>
-      {% else %}
-      <div style="color:#94A3B8; font-size:0.88rem;">No updates yet.</div>
       {% endif %}
     </div>
+
+    {% if complaint.Photo_Path %}
+    <div class="card-custom mb-3">
+      <h6 style="font-weight:600; margin-bottom:1rem;">Complaint Photo</h6>
+      <img src="{{ url_for('static', filename=complaint.Photo_Path) }}"
+           alt="Complaint Photo"
+           style="max-width:100%; border-radius:12px; border:1px solid #E2E8F0;">
+    </div>
+    {% endif %}
+
+    {% if complaint.Latitude and complaint.Longitude %}
+    <div class="card-custom mb-3">
+      <h6 style="font-weight:600; margin-bottom:1rem;">Optional Geotag</h6>
+      <div style="font-size:0.88rem; color:#475569;">
+        <div><strong>Latitude:</strong> {{ complaint.Latitude }}</div>
+        <div><strong>Longitude:</strong> {{ complaint.Longitude }}</div>
+        <div style="margin-top:10px;">
+          <a href="https://www.google.com/maps?q={{ complaint.Latitude }},{{ complaint.Longitude }}"
+             target="_blank"
+             class="btn-outline-custom">
+            <i class="fa-solid fa-location-dot me-1"></i> View on Map
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 
-  <!-- RIGHT: Feedback -->
-  <div class="col-lg-4">
-    <div class="card-custom">
-      {% if feedback %}
-        <h6 style="font-weight:600; margin-bottom:1rem;"><i class="fa-solid fa-star me-2" style="color:#F59E0B;"></i>Your Feedback</h6>
-        <div style="font-size:1.5rem; color:#F59E0B; margin-bottom:8px;">
-          {% for i in range(feedback.Rating) %}&#9733;{% endfor %}
-          {% for i in range(5 - feedback.Rating) %}&#9734;{% endfor %}
-        </div>
-        <div style="font-size:0.88rem; color:#475569; line-height:1.6;">{{ feedback.Comments or 'No comments added.' }}</div>
-        <div style="font-size:0.75rem; color:#94A3B8; margin-top:8px;">Submitted {{ feedback.Feedback_Date }}</div>
-      {% elif complaint.Status == 'Resolved' %}
-        <h6 style="font-weight:600; margin-bottom:0.5rem;"><i class="fa-solid fa-star me-2" style="color:#F59E0B;"></i>Rate Resolution</h6>
-        <div style="font-size:0.82rem; color:#64748B; margin-bottom:1rem;">How satisfied are you with the resolution?</div>
-        <form method="POST" action="/feedback/{{ complaint.Complaint_ID }}">
-          <div class="star-rating mb-3">
-            {% for i in [5,4,3,2,1] %}
-            <input type="radio" name="rating" id="star{{ i }}" value="{{ i }}" {% if i==5 %}required{% endif %}/>
-            <label for="star{{ i }}">&#9733;</label>
-            {% endfor %}
+  <div class="col-lg-7">
+    <div class="card-custom mb-3">
+      <h6 style="font-weight:600; margin-bottom:1.2rem;">
+        <i class="fa-solid fa-clock-rotate-left me-2" style="color:#1A56DB;"></i>Update History
+      </h6>
+
+      {% if updates %}
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          {% for u in updates %}
+          <div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:12px;">
+            <div style="font-size:0.78rem; color:#94A3B8;">{{ u.Update_Date }} • {{ u.Status }}</div>
+            <div style="font-size:0.88rem; color:#1E293B; margin-top:4px;">{{ u.Update_Message }}</div>
           </div>
-          <textarea name="comments" class="form-input" rows="3" placeholder="Share your experience..." style="margin-bottom:1rem;"></textarea>
-          <button type="submit" class="btn-primary-custom" style="width:100%;">Submit Feedback</button>
-        </form>
-      {% else %}
-        <h6 style="font-weight:600; margin-bottom:0.5rem;"><i class="fa-solid fa-star me-2" style="color:#94A3B8;"></i>Feedback</h6>
-        <div style="font-size:0.85rem; color:#94A3B8; text-align:center; padding:1.5rem 0;">
-          <i class="fa-solid fa-lock" style="font-size:1.5rem; margin-bottom:0.75rem; display:block;"></i>
-          Feedback available once your complaint is resolved.
+          {% endfor %}
         </div>
+      {% else %}
+        <div style="color:#94A3B8; font-size:0.85rem;">No updates yet.</div>
       {% endif %}
     </div>
+
+    {% if complaint.Status == 'Resolved' %}
+    <div class="card-custom">
+      <h6 style="font-weight:600; margin-bottom:1rem;">
+        <i class="fa-solid fa-star me-2" style="color:#F59E0B;"></i>Feedback
+      </h6>
+
+      {% if feedback %}
+        <div style="font-size:0.88rem; color:#475569;">
+          <div><strong>Rating:</strong> {{ feedback.Rating }}/5</div>
+          <div style="margin-top:8px;"><strong>Comments:</strong> {{ feedback.Comments or '—' }}</div>
+        </div>
+      {% else %}
+        <form method="POST" action="/feedback/{{ complaint.Complaint_ID }}">
+          <div class="mb-3">
+            <label class="form-label-custom">Rating</label>
+            <select name="rating" class="form-input" required>
+              <option value="">-- Select Rating --</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label-custom">Comments</label>
+            <textarea name="comments" class="form-input" rows="4" placeholder="Share your feedback"></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary-custom">
+            <i class="fa-solid fa-paper-plane me-1"></i> Submit Feedback
+          </button>
+        </form>
+      {% endif %}
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

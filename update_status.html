@@ -21,7 +21,9 @@
     width: 2px;
     background: #E2E8F0;
   }
+
   .tl-item { position: relative; margin-bottom: 1.2rem; }
+
   .tl-dot {
     position: absolute;
     left: -22px;
@@ -31,13 +33,23 @@
     border-radius: 50%;
     border: 2px solid #fff;
   }
+
   .tl-dot.pending  { background: #D97706; box-shadow: 0 0 0 2px #FDE68A; }
   .tl-dot.progress { background: #3B82F6; box-shadow: 0 0 0 2px #BFDBFE; }
   .tl-dot.resolved { background: #16A34A; box-shadow: 0 0 0 2px #BBF7D0; }
   .tl-dot.assigned { background: #8B5CF6; box-shadow: 0 0 0 2px #DDD6FE; }
   .tl-dot.default  { background: #94A3B8; }
+
   .tl-date { font-size: 0.75rem; color: #94A3B8; }
   .tl-msg  { font-size: 0.86rem; color: #1E293B; margin-top: 1px; }
+
+  .media-card {
+    margin-top: 1rem;
+    background: #F8FAFC;
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid #E2E8F0;
+  }
 </style>
 {% endblock %}
 
@@ -56,12 +68,28 @@
   <div class="col-lg-5">
     <div class="card-custom mb-3">
       <h6 style="font-weight:600; margin-bottom:1rem;">Complaint Info</h6>
+
       <table style="width:100%; font-size:0.86rem; border-collapse:separate; border-spacing:0 6px;">
-        <tr><td style="color:#94A3B8; width:40%;">Citizen</td><td style="font-weight:500;">{{ complaint.Citizen_Name }}</td></tr>
-        <tr><td style="color:#94A3B8;">Category</td><td>{{ complaint.Category_Name or '—' }}</td></tr>
-        <tr><td style="color:#94A3B8;">Issue Type</td><td>{{ complaint.Option_Name or '—' }}</td></tr>
-        <tr><td style="color:#94A3B8;">Location</td><td>{{ complaint.Location or '—' }}</td></tr>
-        <tr><td style="color:#94A3B8;">Date</td><td>{{ complaint.Date_Submitted }}</td></tr>
+        <tr>
+          <td style="color:#94A3B8; width:40%;">Citizen</td>
+          <td style="font-weight:500;">{{ complaint.Citizen_Name }}</td>
+        </tr>
+        <tr>
+          <td style="color:#94A3B8;">Category</td>
+          <td>{{ complaint.Category_Name or '—' }}</td>
+        </tr>
+        <tr>
+          <td style="color:#94A3B8;">Issue Type</td>
+          <td>{{ complaint.Option_Name or '—' }}</td>
+        </tr>
+        <tr>
+          <td style="color:#94A3B8;">Location</td>
+          <td>{{ complaint.Location or '—' }}</td>
+        </tr>
+        <tr>
+          <td style="color:#94A3B8;">Date</td>
+          <td>{{ complaint.Date_Submitted }}</td>
+        </tr>
         <tr>
           <td style="color:#94A3B8;">Status</td>
           <td>
@@ -83,6 +111,33 @@
       {% if complaint.Description %}
       <div style="margin-top:1rem; font-size:0.85rem; color:#475569; background:#F8FAFC; border-radius:10px; padding:10px 14px; line-height:1.6;">
         {{ complaint.Description }}
+      </div>
+      {% endif %}
+
+      {% if complaint.Photo_Path %}
+      <div class="media-card">
+        <h6 style="font-weight:600; margin-bottom:0.75rem;">Complaint Photo</h6>
+        <img src="{{ url_for('static', filename=complaint.Photo_Path) }}"
+             alt="Complaint Photo"
+             style="max-width:100%; border-radius:12px; border:1px solid #E2E8F0;">
+      </div>
+      {% endif %}
+
+      {% if complaint.Latitude and complaint.Longitude %}
+      <div class="media-card">
+        <h6 style="font-weight:600; margin-bottom:0.75rem;">Optional Geotag</h6>
+        <div style="font-size:0.85rem; color:#475569; line-height:1.6;">
+          <div><strong>Latitude:</strong> {{ complaint.Latitude }}</div>
+          <div><strong>Longitude:</strong> {{ complaint.Longitude }}</div>
+          <div style="margin-top:10px;">
+            <a href="https://www.google.com/maps?q={{ complaint.Latitude }},{{ complaint.Longitude }}"
+               target="_blank"
+               class="btn-outline-custom"
+               style="display:inline-block;">
+              <i class="fa-solid fa-location-dot me-1"></i> View on Map
+            </a>
+          </div>
+        </div>
       </div>
       {% endif %}
     </div>

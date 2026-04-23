@@ -1,5 +1,9 @@
+import os
+import random
+import time
 from flask import Flask, render_template, request, redirect, session
 from flask_mail import Mail, Message
+from werkzeug.utils import secure_filename
 from db import get_connection
 from datetime import date
 
@@ -14,12 +18,22 @@ app.config['MAIL_USERNAME'] = 'civicconnect.people@gmail.com'
 app.config['MAIL_PASSWORD'] = 'czutginuscrdpnml'
 app.config['MAIL_DEFAULT_SENDER'] = 'civicconnect.people@gmail.com'
 
+# FILE UPLOAD CONFIGURATION
+app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB
+
 mail = Mail(app)
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
 
 # ─────────────────────────────────────────
-# EMAIL HELPERS
+# HELPERS
 # ─────────────────────────────────────────
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 def send_welcome_email(to_email, name):
     try:
         print(f"Trying welcome email to: {to_email}")
@@ -97,6 +111,31 @@ CivicConnect Team
     except Exception as e:
         print("Status update email failed:", repr(e))
 
+def send_reset_otp_email(to_email, otp):
+    try:
+        print(f"Trying password reset OTP email to: {to_email}")
+        msg = Message(
+            subject='CivicConnect Password Reset OTP',
+            recipients=[to_email]
+        )
+        msg.body = f"""
+Hello,
+
+Your OTP for resetting your CivicConnect password is:
+
+{otp}
+
+This OTP is valid for 5 minutes.
+
+If you did not request a password reset, please ignore this email.
+
+Thank you,
+CivicConnect Team
+"""
+        mail.send(msg)
+        print("Password reset OTP email sent successfully.")
+    except Exception as e:
+        print("Password reset OTP email failed:", repr(e))
 
 # ─────────────────────────────────────────
 # HOME
@@ -170,6 +209,96 @@ def login():
 def logout():
     session.clear()
     return redirect('/login')
+
+# ─────────────────────────────────────────
+# FORGOT PASSWORD / OTP RESET
+# ─────────────────────────────────────────
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form['email'].strip()
+
+        con = get_connection()
+        cur = con.cursor(dictionary=True)
+        cur.execute("SELECT * FROM Citizen WHERE Email = %s", (email,))
+        user = cur.fetchone()
+        con.close()
+
+        if not user:
+            return render_template('forgot_password.html', error="Email not found.")
+
+        otp = str(random.randint(100000, 999999))
+
+        session['reset_email'] = email
+        session['reset_otp'] = otp
+        session['reset_otp_expiry'] = time.time() + 300  # 5 minutes
+
+        send_reset_otp_email(email, otp)
+
+        return redirect('/verify-otp')
+
+    return render_template('forgot_password.html')
+
+
+@app.route('/verify-otp', methods=['GET', 'POST'])
+def verify_otp():
+    if 'reset_email' not in session:
+        return redirect('/forgot-password')
+
+    if request.method == 'POST':
+        entered_otp = request.form['otp'].strip()
+
+        saved_otp = session.get('reset_otp')
+        expiry = session.get('reset_otp_expiry')
+
+        if not saved_otp or not expiry:
+            return redirect('/forgot-password')
+
+        if time.time() > expiry:
+            session.pop('reset_otp', None)
+            session.pop('reset_otp_expiry', None)
+            return render_template('verify_otp.html', error="OTP expired. Please request a new one.")
+
+        if entered_otp != saved_otp:
+            return render_template('verify_otp.html', error="Invalid OTP.")
+
+        session['otp_verified'] = True
+        return redirect('/reset-password')
+
+    return render_template('verify_otp.html')
+
+
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    if 'reset_email' not in session or not session.get('otp_verified'):
+        return redirect('/forgot-password')
+
+    if request.method == 'POST':
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+
+        if new_password != confirm_password:
+            return render_template('reset_password.html', error="Passwords do not match.")
+
+        email = session['reset_email']
+
+        con = get_connection()
+        cur = con.cursor()
+        cur.execute(
+            "UPDATE Citizen SET Password = %s WHERE Email = %s",
+            (new_password, email)
+        )
+        con.commit()
+        con.close()
+
+        session.pop('reset_email', None)
+        session.pop('reset_otp', None)
+        session.pop('reset_otp_expiry', None)
+        session.pop('otp_verified', None)
+
+        return redirect('/login')
+
+    return render_template('reset_password.html')
 
 
 # ─────────────────────────────────────────
@@ -262,18 +391,35 @@ def report_complaint():
         description = request.form['description']
         location = request.form['location']
         option_id = request.form['option_id']
+        latitude = request.form.get('latitude') or None
+        longitude = request.form.get('longitude') or None
+
+        photo = request.files.get('photo')
+        photo_path = None
+
+        if photo and photo.filename:
+            if allowed_file(photo.filename):
+                os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                filename = secure_filename(photo.filename)
+                unique_filename = f"{date.today()}_{filename}"
+                save_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                photo.save(save_path)
+                photo_path = f"uploads/{unique_filename}"
 
         cur.execute("""
             INSERT INTO Complaint
-            (Citizen_ID, Option_ID, Title, Description, Location, Date_Submitted, Status)
-            VALUES (%s, %s, %s, %s, %s, %s, 'Pending')
+            (Citizen_ID, Option_ID, Title, Description, Location, Date_Submitted, Status, Photo_Path, Latitude, Longitude)
+            VALUES (%s, %s, %s, %s, %s, %s, 'Pending', %s, %s, %s)
         """, (
             session['citizen_id'],
             option_id,
             title,
             description,
             location,
-            date.today()
+            date.today(),
+            photo_path,
+            latitude,
+            longitude
         ))
 
         complaint_id = cur.lastrowid

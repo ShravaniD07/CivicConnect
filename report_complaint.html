@@ -3,7 +3,6 @@
 
 {% block extra_css %}
 <style>
-  /* STEP INDICATOR */
   .steps { display: flex; align-items: center; gap: 0; margin-bottom: 2.5rem; }
   .step-circle {
     width: 36px; height: 36px; border-radius: 50%;
@@ -21,7 +20,6 @@
   .step-label.done   { color: #16A34A; }
   .step-wrap { display: flex; flex-direction: column; align-items: center; }
 
-  /* CATEGORY CARDS */
   .category-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -50,7 +48,6 @@
   .cat-name { font-size: 0.88rem; font-weight: 600; color: #1E293B; }
   .cat-desc { font-size: 0.75rem; color: #94A3B8; margin-top: 4px; }
 
-  /* OPTION PILLS */
   .options-grid { display: flex; flex-wrap: wrap; gap: 10px; }
   .option-pill {
     border: 2px solid #E2E8F0;
@@ -66,7 +63,6 @@
   .option-pill .pill-name { font-size: 0.88rem; font-weight: 500; color: #1E293B; }
   .option-pill .pill-priority { font-size: 0.72rem; padding: 2px 8px; border-radius: 8px; }
 
-  /* STEP SECTIONS */
   #step2, #step3 { display: none; animation: fadeIn 0.3s ease; }
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(8px); }
@@ -100,6 +96,13 @@
     margin-bottom: 16px;
     font-size: 0.9rem;
   }
+
+  .geo-box {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 12px;
+  }
 </style>
 {% endblock %}
 
@@ -113,7 +116,6 @@
 </div>
 {% endif %}
 
-<!-- STEP INDICATORS -->
 <div class="steps" id="stepIndicator">
   <div class="step-wrap">
     <div class="step-circle active" id="sc1">1</div>
@@ -131,10 +133,10 @@
   </div>
 </div>
 
-<form method="POST" id="complaintForm">
+<form method="POST" id="complaintForm" enctype="multipart/form-data">
   <input type="hidden" name="option_id" id="selected_option_id"/>
 
-  <!-- STEP 1: CATEGORY -->
+  <!-- STEP 1 -->
   <div id="step1">
     <div class="card-custom mb-3">
       <h6 style="font-weight:600; margin-bottom:1rem; color:#1E293B;">
@@ -172,7 +174,7 @@
     </div>
   </div>
 
-  <!-- STEP 2: ISSUE OPTIONS -->
+  <!-- STEP 2 -->
   <div id="step2">
     <div class="selected-summary">
       <i class="fa-solid fa-layer-group" style="color:#1A56DB; font-size:1.1rem;"></i>
@@ -188,7 +190,7 @@
     </div>
   </div>
 
-  <!-- STEP 3: COMPLAINT DETAILS -->
+  <!-- STEP 3 -->
   <div id="step3">
     <div class="selected-summary">
       <i class="fa-solid fa-check-circle" style="color:#16A34A; font-size:1.1rem;"></i>
@@ -223,6 +225,32 @@
           <div style="font-size:0.8rem; color:#64748B; margin-top:5px;">
             <span id="charCount">0</span> / 200 characters
           </div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label-custom">Complaint Photo (Optional)</label>
+          <input type="file" name="photo" class="form-input" accept=".jpg,.jpeg,.png,.gif,image/*" capture="environment">
+          <div style="font-size:0.78rem; color:#64748B; margin-top:5px;">
+            You can capture or upload a complaint photo as supporting evidence.
+          </div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label-custom">Optional Geotag</label>
+          <div class="geo-box">
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn-outline-custom" onclick="getLocation()">
+                <i class="fa-solid fa-location-crosshairs me-1"></i> Use My Current Location as Geotag
+              </button>
+              <span id="geoStatus" style="font-size:0.85rem; color:#64748B; align-self:center;"></span>
+            </div>
+            <div style="font-size:0.78rem; color:#64748B; margin-top:8px;">
+              This is optional. Use it only if you are currently at the issue location.
+            </div>
+          </div>
+
+          <input type="hidden" name="latitude" id="latitude">
+          <input type="hidden" name="longitude" id="longitude">
         </div>
 
         <div class="col-12 d-flex gap-3 mt-2">
@@ -346,6 +374,28 @@ function updateStepUI(step) {
       line.className = 'step-line' + (i < step ? ' done' : '');
     }
   }
+}
+
+function getLocation() {
+  const geoStatus = document.getElementById('geoStatus');
+
+  if (!navigator.geolocation) {
+    geoStatus.textContent = 'Geolocation is not supported by your browser.';
+    return;
+  }
+
+  geoStatus.textContent = 'Fetching location...';
+
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      document.getElementById('latitude').value = position.coords.latitude;
+      document.getElementById('longitude').value = position.coords.longitude;
+      geoStatus.textContent = `Geotag added: ${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`;
+    },
+    function() {
+      geoStatus.textContent = 'Unable to fetch location. Please allow location access.';
+    }
+  );
 }
 
 document.addEventListener('DOMContentLoaded', function () {

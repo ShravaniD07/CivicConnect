@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Verify OTP — CivicConnect{% endblock %}
+
+{% block content %}
+<div class="section-title">Verify OTP</div>
+<div class="section-sub">Enter the OTP sent to your email.</div>
+
+<div class="card-custom" style="max-width:500px; margin:auto;">
+  {% if error %}
+  <div style="background:#FEF2F2; color:#B91C1C; border:1px solid #FECACA; padding:10px; border-radius:10px; margin-bottom:16px;">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label-custom">OTP</label>
+      <input type="text" name="otp" class="form-input" maxlength="6" required>
+    </div>
+
+    <button type="submit" class="btn-primary-custom" style="width:100%;">
+      Verify OTP
+    </button>
+  </form>
+</div>
+{% endblock %}
