@@ -3,7 +3,7 @@
 
 ---
 
-## SETUP STEPS
+### SETUP STEPS
 
 ### 1. Install VS Code
 Download from: https://code.visualstudio.com/
