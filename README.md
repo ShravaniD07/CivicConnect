@@ -1,4 +1,4 @@
-# CivicConnect — Civic Issue Tracking System
+## CivicConnect — Civic Issue Tracking System
 ## Flask + MySQL + Python
 
 ---
